@@ -1,18 +1,16 @@
-from bisMaze import Character, Item, Maze, movement, get_object, check_guardian, win_lose, path
-from maze import LIST_X, LIST_Y
+from bisMaze import Character, Item, movement, get_object, check_guardian, win_lose, path
+from maze import maze
 
 #I create all my Items:
 
-maze = Maze(LIST_X, LIST_Y)
-
 #Character have a position and an inventory
-macGyver = Character(7.0, 2.0, 0)
-guardian = Character(7.0, 15.0, 0)
+macGyver = Character(5, 0, 0)
+guardian = Character(5, 14, 0)
 
 #Item just have a position
-niddle = Item("Aiguille", 4.0, 10.0)
-tube = Item("Tube en plastique", 7.0, 6.0)
-ether = Item("Ether", 9.0, 9.0)
+niddle = Item("Aiguille", 4, 10)
+tube = Item("Tube en plastique", 7, 6)
+ether = Item("Ether", 8, 9)
 
 #I put my Item in a list so I can iterate whenever MacGyver moves to check if an object is here
 Items = [niddle, tube, ether]
@@ -20,9 +18,6 @@ Items = [niddle, tube, ether]
 #I create two var for position and inventory so it's clearer
 position = [macGyver.position_x, macGyver.position_y]
 player_inventory = macGyver.inventory
-
-#An iteration to check for the coordonnates
-i = 1
 
 finished = False
 #Ask the user to move if he's not in front of the guardian 
@@ -36,9 +31,7 @@ while finished == False:
     print("Position ", position)
 
     #Check if he's on the wall or not, if he can move, i += 1
-    valid_move = path(macGyver, maze, i, position_init)
-    if valid_move:
-        i += 1
+    path(macGyver, maze, position_init)
     
     print("Coordonnées après vérif", macGyver.position_x, macGyver.position_y)
     

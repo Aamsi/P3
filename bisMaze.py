@@ -22,43 +22,19 @@ class Item:
         self.position_y = position_y
         self.position = [self.position_x, self.position_y]
 
-class Maze:
-    #Create two attributes: one for x coordonnates and one for y coordonnates
-    def __init__(self, list_x, list_y):
-        self.list_x = list_x
-        self.list_y = list_y
-
-
-
 
 #check if the coordonnates of MG == coordonnates of the path on x
-def path(macGyver, maze, i, position_init):
-    path_x = False
-    path_y = False
-    path = False
-
-    if macGyver.position_x == maze.list_x[i]:
-        path_x = True
-    else:
-        path_x = False
-        macGyver.position_x = position_init[0]
-
-    if macGyver.position_y == maze.list_y[i]:
-        path_y = True
-    else:
-        path_x = False
-        macGyver.position_y = position_init[1]
+def path(macGyver, maze, initial_position):
+    try:
+        if maze[macGyver.position_y][macGyver.position_x] == '0' or macGyver.position_x == -1 or macGyver.position_y == -1:
+            macGyver.position_x = initial_position[0]
+            macGyver.position_y = initial_position[1]
+            print("Vous ne pouvez pas aller là")
+    except IndexError:
+        print("Vous ne pouvez pas allez là")
+        macGyver.position_x = initial_position[0]
+        macGyver.position_y = initial_position[1]
     
-    if not path_x or not path_y:
-        path = False
-        print("Vous ne pouvez pas aller là, il y a un mur!")
-    else:
-        path = True
-    
-    return path
-    
-
-
 #ask input to the user
 def ask_input():
     can_move = False
@@ -80,16 +56,16 @@ def movement(macGyver):
     move = ask_input()
        
     if move == "d":
-        macGyver.position_x += 1.0
+        macGyver.position_x += 1
         position[0] = macGyver.position_x
     elif move == "q":
-        macGyver.position_x -= 1.0
+        macGyver.position_x -= 1
         position[0] = macGyver.position_x
     elif move == "z":
-        macGyver.position_y += 1.0
+        macGyver.position_y -= 1
         position[1] = macGyver.position_y
     elif move == "s":
-        macGyver.position_y -= 1.0
+        macGyver.position_y += 1
         position[1] = macGyver.position_y
    
     return position
