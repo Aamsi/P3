@@ -7,13 +7,15 @@ class Character:
        - MacGyver (position and inventory)
        - Guardian (position and inventory = 0)"""
     
-    """Two attributes: position and inventory"""
+    """Three attributes: position_x, position_y and inventory"""
     def __init__(self, position_x, position_y, inventory):
         self.position_x = position_x
         self.position_y = position_y
         self.inventory = inventory
     
     def movement(self):
+        """Modify hero position after asking input"""
+
         position = [self.position_x, self.position_y]
 
         move = input_pg()
@@ -40,6 +42,8 @@ class Character:
         return position
     
     def path(self, maze, initial_position):
+        """Check if he can move toward the new position"""
+
         try:
             if maze[self.position_y][self.position_x] == 0 or self.position_x == -1 or self.position_y == -1:
                 self.position_x = initial_position[0]
@@ -50,6 +54,8 @@ class Character:
             self.position_y = initial_position[1]
 
     def get_object(self, item):
+        """If hero on an item, add 1 to inventory"""
+
         self.inventory += 1
         item.picked_up()
         return self.inventory
@@ -69,20 +75,22 @@ class Character:
         return finished
 
     def win_lose(self, other):
+        """Check if MacGyver fills all conditions to win"""
+
         finished = self.check_guardian(other)
         inventory = self.inventory
     
         win = False
         if finished and inventory == 3:
             win = True
-            print("Vous avez gagné!")
         elif finished and inventory != 3:
             win = False
-            print("Vous n'avez pas assez d'objets pour endormir le guardien!")
 
         return win
     
     def check_x_position(self, other):
+        """Check x position"""
+
         x_finished = False
 
         if self.position_x == other.position_x:
@@ -93,6 +101,8 @@ class Character:
         return x_finished
     
     def check_y_position(self, other):
+        """Check y position"""
+
         y_finished = False
 
         if self.position_y == other.position_y:
@@ -107,7 +117,7 @@ class Item:
        - Niddle
        - Tube
        - Ether
-       Each have one attribute: position"""
+       Each have two attributes: name and position"""
 
     def __init__(self, nom, position=[]):
         self.nom = nom
@@ -116,6 +126,8 @@ class Item:
         self.position_y = position[1]
     
     def picked_up(self):
+        """Modify item position when picked up"""
+
         self.position_x = -100
         self.position_y = -100
         self.position = [-100, -100]
@@ -127,6 +139,8 @@ class Maze:
         self.laby = []
     
     def loadmaze(self):
+        """Load the level from the text file"""
+
         maze = []
 
         with open(self.level, 'r') as laby:
@@ -146,6 +160,8 @@ class Maze:
         return maze
     
     def maze_interface(self, ecran):
+        """Display the maze, given the level"""
+
         wall = pg.image.load('ressource/tile_wall.png').convert_alpha()
         tile_wall = pg.transform.scale(wall, (40, 40))
 
@@ -159,14 +175,16 @@ class Maze:
             y += 40
     
     def random_pos(self):
+        """Generate a random position for item"""
+
         x = 0
         pos = []
         pos_rand = [0, 0]
 
         while x < 15:
-            y = 0
+            y = 1
 
-            while y < 15:
+            while y < 14:
                 if self.laby[y][x] == 1:
                     pos_rand = [x, y]
                     pos.append(pos_rand)
@@ -179,8 +197,10 @@ class Maze:
         return coord
 
 
-
 def input_pg():
+    """Input for the user to move MacGyver or quit
+       Used in class method movement()"""
+
     move = None
 
     for event in pg.event.get():
@@ -202,39 +222,44 @@ def input_pg():
     
     return move
 
-def sprite_print(sprite, sprite_file, ecran):
+def sprite_interaction(sprite, sprite_file, ecran):
+    """Display all objects that interacts with the user"""
 
     sprite_image = pg.image.load(sprite_file).convert_alpha()
-    sprite_pict = pg.transform.scale(sprite_image, (40, 40))
+    sprite_sized = pg.transform.scale(sprite_image, (40, 40))
 
     x = sprite.position_x * 40
     y = sprite.position_y * 40
 
-    ecran.blit(sprite_pict, (x, y))
+    ecran.blit(sprite_sized, (x, y))
 
-def inventory_counter(hero, screen):
+def inventory_counter_sprite(hero, screen):
+    """Counts MacGyver's inventory and display number"""
+
     counter_0 = pg.image.load('ressource/compteur_0.png').convert_alpha()
-    counter_pict0 = pg.transform.scale(counter_0, (40, 40))
+    counter0_sized = pg.transform.scale(counter_0, (40, 40))
 
     counter_1 = pg.image.load('ressource/compteur_1.png').convert_alpha()
-    counter_pict1 = pg.transform.scale(counter_1, (40, 40))
+    counter1_sized = pg.transform.scale(counter_1, (40, 40))
 
     counter_2 = pg.image.load('ressource/compteur_2.png').convert_alpha()
-    counter_pict2 = pg.transform.scale(counter_2, (40, 40))
+    counter2_sized = pg.transform.scale(counter_2, (40, 40))
 
     counter_3 = pg.image.load('ressource/compteur_3.png').convert_alpha()
-    counter_pict3 = pg.transform.scale(counter_3, (40, 40))
+    counter3_sized = pg.transform.scale(counter_3, (40, 40))
 
     if hero.inventory == 0:
-        screen.blit(counter_pict0, (540, 0))
+        screen.blit(counter0_sized, (540, 0))
     elif hero.inventory == 1:
-        screen.blit(counter_pict1, (540, 0))
+        screen.blit(counter1_sized, (540, 0))
     elif hero.inventory == 2:
-        screen.blit(counter_pict2, (540, 0))
+        screen.blit(counter2_sized, (540, 0))
     elif hero.inventory == 3:
-        screen.blit(counter_pict3, (540, 0))
+        screen.blit(counter3_sized, (540, 0))
     
 def win_sprite(screen, win):
+    """Display if won or lost"""
+
     win_img = pg.image.load('ressource/youWin.png').convert_alpha()
     win_sized = pg.transform.scale(win_img, (400, 300))
 
@@ -245,3 +270,4 @@ def win_sprite(screen, win):
         screen.blit(win_sized, (100, 200))
     else:
         screen.blit(loose_sized, (100, 200))
+    
