@@ -241,8 +241,8 @@ def draw_sprite(instance, sprite, ecran):
     ecran.blit(sprite, (x, y))
 
 
-def inventory_counter_sprite(hero, screen):
-    """Counts MacGyver's inventory and display number"""
+def load_counter_sprite(hero):
+    """Counts MacGyver's inventory and load counter sprites"""
 
     counters_file = ['ressource/compteur_0.png', 'ressource/compteur_1.png',
                      'ressource/compteur_2.png', 'ressource/compteur_3.png']
@@ -253,19 +253,20 @@ def inventory_counter_sprite(hero, screen):
         counter_sized = pg.transform.scale(counter, (40, 40))
         counters.append(counter_sized)
 
-    screen.blit(counters[hero.inventory], (540, 0))
-
+    return counters
 
 def win_sprite(screen, win):
     """Display if won or lost"""
 
-    win_img = pg.image.load('ressource/youWin.png').convert_alpha()
-    win_sized = pg.transform.scale(win_img, (400, 300))
+    win_loose_files = ['ressource/youWin.png', 'ressource/loose.png']
+    win_loose_sprites = []
 
-    loose_img = pg.image.load('ressource/loose.png').convert_alpha()
-    loose_sized = pg.transform.scale(loose_img, (400, 300))
+    for win_loose_file in win_loose_files:
+        win_img = pg.image.load(win_loose_file).convert_alpha()
+        win_sized = pg.transform.scale(win_img, (400, 300))
+        win_loose_sprites.append(win_sized)
 
     if win:
-        screen.blit(win_sized, (100, 200))
+        screen.blit(win_loose_sprites[0], (100, 200))
     else:
-        screen.blit(loose_sized, (100, 200))
+        screen.blit(win_loose_sprites[1], (100, 200))

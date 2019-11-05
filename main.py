@@ -1,7 +1,7 @@
 from time import sleep
 import pygame as pg
 
-from core import (Character, Item, Maze, inventory_counter_sprite, win_sprite,
+from core import (Character, Item, Maze, load_counter_sprite, win_sprite,
                   load_image, draw_sprite)
 
 
@@ -40,6 +40,7 @@ while not win:
     niddle_sprite = load_image('ressource/aiguille.png')
     ether_sprite = load_image('ressource/ether.png')
     tube_sprite = load_image('ressource/tube_plastique.png')
+    counters = load_counter_sprite(macgyver)
 
     keep_going = True
     """Run the loop while user doesn't press ESCAPE to quit or user's not in
@@ -59,7 +60,7 @@ while not win:
         maze.draw_maze(screen)
 
         """Draw the counter sprite"""
-        inventory_counter_sprite(macgyver, screen)
+        screen.blit(counters[macgyver.inventory], (540, 0))
 
         """Modifying MacGyver position with inputs"""
         macgyver.movement(maze.struct)
