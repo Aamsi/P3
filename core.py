@@ -1,16 +1,20 @@
 from random import randrange
-from time import sleep
 
 import pygame as pg
+
+MOVE_LEFT = 0
+MOVE_RIGHT = 1
+MOVE_UP = 2
+MOVE_DOWN = 3
+QUIT = 4
 
 
 class Character:
     """Character :
-       - MacGyver (position and inventory)
-       - Guardian (position and inventory = 0)"""
+       - MacGyver (position and inventory=0)
+       - Guardian (position and inventory=0)"""
 
-    """Three attributes: position_x, position_y and inventory"""
-    def __init__(self, position_x, position_y, inventory):
+    def __init__(self, position_x, position_y, inventory=0):
         self.position = [position_x, position_y]
         self.inventory = inventory
 
@@ -20,19 +24,19 @@ class Character:
 
         move = input_pg()
 
-        if move == 1:
+        if move == MOVE_RIGHT:
             self.position[0] += 1
 
-        elif move == 0:
+        elif move == MOVE_LEFT:
             self.position[0] -= 1
 
-        elif move == 2:
+        elif move == MOVE_UP:
             self.position[1] -= 1
 
-        elif move == 3:
+        elif move == MOVE_DOWN:
             self.position[1] += 1
 
-        elif move == 4:
+        elif move == QUIT:
             pg.quit()
 
         self.check_path(maze, initial_position)
@@ -87,19 +91,19 @@ class Item:
     def random_pos(self, maze):
         """Generate a random position for item"""
 
-        x = 0
+        x_it = 0
         pos = []
         pos_rand = [0, 0]
 
-        while x < 15:
-            y = 1
+        while x_it < 15:
+            y_it = 1
 
-            while y < 14:
-                if maze[y][x] == 1:
-                    pos_rand = [x, y]
+            while y_it < 14:
+                if maze[y_it][x_it] == 1:
+                    pos_rand = [x_it, y_it]
                     pos.append(pos_rand)
-                y += 1
-            x += 1
+                y_it += 1
+            x_it += 1
 
         i = randrange(len(pos))
         coord = pos[i]
@@ -146,46 +150,46 @@ class Maze:
     def draw_maze(self, tile_wall, ecran):
         """Display the maze, given the level"""
 
-        y = 0
+        y_it = 0
         for line in self.laby:
-            x = 0
+            x_it = 0
             for value in line:
                 if value == 0:
-                    ecran.blit(tile_wall, (x, y))
-                x += 40
-            y += 40
+                    ecran.blit(tile_wall, (x_it, y_it))
+                x_it += 40
+            y_it += 40
 
     def start(self):
         """Find the starting position for MacGyver's position"""
 
-        x = 0
+        x_it = 0
         maze_start = []
 
-        while x < 15:
-            y = 0
+        while x_it < 15:
+            y_it = 0
 
-            while y < 15:
-                if self.struct[y][x] == 2:
-                    maze_start = [x, y]
-                y += 1
-            x += 1
+            while y_it < 15:
+                if self.struct[y_it][x_it] == 2:
+                    maze_start = [x_it, y_it]
+                y_it += 1
+            x_it += 1
 
         return maze_start
 
     def end(self):
         """Find the ending position for the Guardian's position"""
 
-        x = 0
+        x_it = 0
         maze_end = []
 
-        while x < 15:
-            y = 0
+        while x_it < 15:
+            y_it = 0
 
-            while y < 15:
-                if self.struct[y][x] == 3:
-                    maze_end = [x, y]
-                y += 1
-            x += 1
+            while y_it < 15:
+                if self.struct[y_it][x_it] == 3:
+                    maze_end = [x_it, y_it]
+                y_it += 1
+            x_it += 1
 
         return maze_end
 
@@ -193,11 +197,6 @@ class Maze:
 def input_pg():
     """Input for the user to move MacGyver or quit
        Used in class method movement()"""
-    MOVE_LEFT = 0
-    MOVE_RIGHT = 1
-    MOVE_UP = 2
-    MOVE_DOWN = 3
-    QUIT = 4
 
     move = None
 
@@ -233,13 +232,13 @@ def load_image(sprite_file):
 def draw_sprite(instance, sprite, ecran):
     """Display all instances that interacts with the user"""
 
-    x = instance.position[0] * 40
-    y = instance.position[1] * 40
+    x_pos = instance.position[0] * 40
+    y_pos = instance.position[1] * 40
 
-    ecran.blit(sprite, (x, y))
+    ecran.blit(sprite, (x_pos, y_pos))
 
 
-def load_counter_sprite(hero):
+def load_counter_sprite():
     """Counts MacGyver's inventory and load counter sprites"""
 
     counters_file = ['ressource/compteur_0.png', 'ressource/compteur_1.png',
@@ -252,6 +251,7 @@ def load_counter_sprite(hero):
         counters.append(counter_sized)
 
     return counters
+
 
 def win_sprite(screen, win):
     """Display if won or lost"""
@@ -268,87 +268,3 @@ def win_sprite(screen, win):
         screen.blit(win_loose_sprites[0], (100, 200))
     else:
         screen.blit(win_loose_sprites[1], (100, 200))
-
-def main():
-    win = False
-    """If user wins or close the program, else, keep running"""
-    while not win:
-
-        """Maze"""
-        maze = Maze('level0.txt')
-        start_position = maze.start()
-        end_position = maze.end()
-
-        """Characters"""
-        macgyver = Character(start_position[0], start_position[1], 0)
-        guardian = Character(end_position[0], end_position[1], 0)
-
-        """Items"""
-        niddle = Item("Aiguille")
-        niddle.random_pos(maze.struct)
-        tube = Item("Tube en plastique")
-        tube.random_pos(maze.struct)
-        ether = Item("Ether")
-        ether.random_pos(maze.struct)
-
-        """Items list"""
-        items = [niddle, tube, ether]
-
-        """Pygame loop"""
-        pg.init()
-        screen = pg.display.set_mode((600, 600), pg.RESIZABLE)
-        pg.display.set_caption("THE MAZE")
-
-        """Load sprites"""
-        tile_wall = load_image('ressource/tile_wall.png')
-        macgyver_sprite = load_image('ressource/MacGyver.png')
-        guardian_sprite = load_image('ressource/Gardien.png')
-        niddle_sprite = load_image('ressource/aiguille.png')
-        ether_sprite = load_image('ressource/ether.png')
-        tube_sprite = load_image('ressource/tube_plastique.png')
-        counters = load_counter_sprite(macgyver)
-
-        keep_going = True
-        """Run the loop while user doesn't press ESCAPE to quit or user's not in
-            front of the guardian"""
-        while keep_going:
-            pg.draw.rect(screen, (0, 0, 0), (0, 0, 600, 600))
-
-            """Draw sprites"""
-            draw_sprite(niddle, niddle_sprite, screen)
-            draw_sprite(ether, ether_sprite, screen)
-            draw_sprite(tube, tube_sprite, screen)
-
-            """Draw guardian_sprite"""
-            draw_sprite(guardian, guardian_sprite, screen)
-
-            """Draw the maze"""
-            maze.draw_maze(tile_wall, screen)
-
-            """Draw the counter sprite"""
-            screen.blit(counters[macgyver.inventory], (540, 0))
-
-            """Modifying MacGyver position with inputs"""
-            macgyver.movement(maze.struct)
-
-            """Draw MacGyver"""
-            draw_sprite(macgyver, macgyver_sprite, screen)
-
-            """Check if he's on an item, if so, add 1 to inventory"""
-            for item in items:
-                if macgyver.position == item.position:
-                    macgyver.get_object(item)
-
-            """Check if MacGyver's in front of the guardian"""
-            finished = macgyver.check_guardian(guardian)
-
-            """Check if he fills all conditions and if he wins"""
-            if finished:
-                win = macgyver.win_lose(guardian)
-                win_sprite(screen, win)
-                keep_going = False
-                """Display loosing or winning sprite"""
-                pg.display.flip()
-                sleep(2)
-
-            pg.display.flip()
