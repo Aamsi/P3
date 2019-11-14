@@ -1,4 +1,5 @@
 from random import randrange
+from time import sleep
 
 import pygame as pg
 
@@ -18,11 +19,9 @@ class Character:
         self.position = [position_x, position_y]
         self.inventory = inventory
 
-    def movement(self, maze):
+    def movement(self, maze, move):
         """Modify hero position after asking input"""
         initial_position = [self.position[0], self.position[1]]
-
-        move = input_pg()
 
         if move == MOVE_RIGHT:
             self.position[0] += 1
@@ -52,12 +51,12 @@ class Character:
         except IndexError:
             self.position = initial_position
 
-    def get_object(self, item):
+    def check_object(self, items):
         """If hero on an item, add 1 to inventory"""
-
-        self.inventory += 1
-        item.picked_up()
-        return self.inventory
+        for item in items:
+            if self.position == item.position:
+                self.inventory += 1
+                item.picked_up()
 
     def check_guardian(self, other):
         """Check if MacGyver's in front of the guardian:"""
@@ -125,6 +124,8 @@ class Maze:
     def __init__(self, level):
         self.level = level
         self.struct = self.load_maze()
+        self.start_position = self.start()
+        self.end_position = self.end()
 
     def load_maze(self):
         """Load the level from the text file"""
@@ -193,78 +194,204 @@ class Maze:
 
         return maze_end
 
+class PygameTool:
+    """Every tool used with pygame"""
 
-def input_pg():
-    """Input for the user to move MacGyver or quit
-       Used in class method movement()"""
+    def __init__(self):
+        pg.init()
 
-    move = None
+        self.tile_wall = None
+        self.macgyver_sprite = None
+        self.guardian_sprite = None
+        self.niddle_sprite = None
+        self.ether_sprite = None
+        self.tube_sprite = None
+        self.counters = None
 
-    for event in pg.event.get():
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_RIGHT:
-                move = MOVE_RIGHT
+    def blit(self, sprite, screen):
+        """Blit the screen"""
+        screen.blit(sprite, (540, 0))
 
-            elif event.key == pg.K_LEFT:
-                move = MOVE_LEFT
+    def flip(self):
+        """Update the screen"""
+        pg.display.flip()
 
-            elif event.key == pg.K_UP:
-                move = MOVE_UP
+    def input_pg(self):
+        """Input for the user to move MacGyver or quit
+        Used in class method movement()"""
+        move = None
 
-            elif event.key == pg.K_DOWN:
-                move = MOVE_DOWN
+        for event in pg.event.get():
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_RIGHT:
+                    move = MOVE_RIGHT
 
-            elif event.key == pg.K_ESCAPE:
-                move = QUIT
+                elif event.key == pg.K_LEFT:
+                    move = MOVE_LEFT
 
-    return move
+                elif event.key == pg.K_UP:
+                    move = MOVE_UP
 
+                elif event.key == pg.K_DOWN:
+                    move = MOVE_DOWN
 
-def load_image(sprite_file):
-    """Load every images"""
+                elif event.key == pg.K_ESCAPE:
+                    move = QUIT
 
-    sprite_image = pg.image.load(sprite_file).convert_alpha()
-    sprite_scaled = pg.transform.scale(sprite_image, (40, 40))
-
-    return sprite_scaled
-
-
-def draw_sprite(instance, sprite, ecran):
-    """Display all instances that interacts with the user"""
-
-    x_pos = instance.position[0] * 40
-    y_pos = instance.position[1] * 40
-
-    ecran.blit(sprite, (x_pos, y_pos))
-
-
-def load_counter_sprite():
-    """Counts MacGyver's inventory and load counter sprites"""
-
-    counters_file = ['ressource/compteur_0.png', 'ressource/compteur_1.png',
-                     'ressource/compteur_2.png', 'ressource/compteur_3.png']
-    counters = []
-
-    for counter_file in counters_file:
-        counter = pg.image.load(counter_file).convert_alpha()
-        counter_sized = pg.transform.scale(counter, (40, 40))
-        counters.append(counter_sized)
-
-    return counters
+        return move
 
 
-def win_sprite(screen, win):
-    """Display if won or lost"""
+    def load_image(self, sprite_file):
+        """Load every images"""
 
-    win_loose_files = ['ressource/youWin.png', 'ressource/loose.png']
-    win_loose_sprites = []
+        sprite_image = pg.image.load(sprite_file).convert_alpha()
+        sprite_scaled = pg.transform.scale(sprite_image, (40, 40))
 
-    for win_loose_file in win_loose_files:
-        win_img = pg.image.load(win_loose_file).convert_alpha()
-        win_sized = pg.transform.scale(win_img, (400, 300))
-        win_loose_sprites.append(win_sized)
+        return sprite_scaled
 
-    if win:
-        screen.blit(win_loose_sprites[0], (100, 200))
-    else:
-        screen.blit(win_loose_sprites[1], (100, 200))
+    def load_all_sprites(self):
+        """Load every sprites with load_image()"""
+
+        self.tile_wall = self.load_image('ressource/tile_wall.png')
+        self.macgyver_sprite = self.load_image('ressource/MacGyver.png')
+        self.guardian_sprite = self.load_image('ressource/Gardien.png')
+        self.niddle_sprite = self.load_image('ressource/aiguille.png')
+        self.ether_sprite = self.load_image('ressource/ether.png')
+        self.tube_sprite = self.load_image('ressource/tube_plastique.png')
+        self.counters = self.load_counter_sprite()
+
+    def draw_sprite(self, instance, sprite, screen):
+        """Display all instances that interacts with the user"""
+
+        x_pos = instance.position[0] * 40
+        y_pos = instance.position[1] * 40
+
+        screen.blit(sprite, (x_pos, y_pos))
+
+    def load_counter_sprite(self):
+        """Counts MacGyver's inventory and load counter sprites"""
+
+        counters_file = ['ressource/compteur_0.png', 'ressource/compteur_1.png',
+                         'ressource/compteur_2.png', 'ressource/compteur_3.png']
+        counters = []
+
+        for counter_file in counters_file:
+            counter = pg.image.load(counter_file).convert_alpha()
+            counter_sized = pg.transform.scale(counter, (40, 40))
+            counters.append(counter_sized)
+
+        return counters
+
+
+    def win_sprite(self, win, screen):
+        """Display if won or lost"""
+
+        win_loose_files = ['ressource/youWin.png', 'ressource/loose.png']
+        win_loose_sprites = []
+
+        for win_loose_file in win_loose_files:
+            win_img = pg.image.load(win_loose_file).convert_alpha()
+            win_sized = pg.transform.scale(win_img, (400, 300))
+            win_loose_sprites.append(win_sized)
+
+        if win:
+            screen.blit(win_loose_sprites[0], (100, 200))
+        else:
+            screen.blit(win_loose_sprites[1], (100, 200))
+
+
+class GameMaze:
+    """Contains every method used to run the game"""
+
+    def __init__(self):
+        self.maze = None
+        self.macgyver = None
+        self.guardian = None
+        self.niddle = None
+        self.tube = None
+        self.ether = None
+        self.items = None
+        self.screen = None
+        self.pg_tool = PygameTool()
+        self.finished = None
+        self.win = None
+
+    def init_maze(self):
+        """Initialize the maze"""
+
+        self.maze = Maze('level0.txt')
+
+    def init_characters(self):
+        """Initialize characters"""
+
+        self.macgyver = Character(self.maze.start_position[0], \
+                                    self.maze.start_position[1])
+        self.guardian = Character(self.maze.end_position[0], \
+                                    self.maze.end_position[1])
+
+    def init_items(self):
+        """Initialize items"""
+
+        self.niddle = Item("Aiguille")
+        self.niddle.random_pos(self.maze.struct)
+        self.tube = Item("Tube en plastique")
+        self.tube.random_pos(self.maze.struct)
+        self.ether = Item("Ether")
+        self.ether.random_pos(self.maze.struct)
+
+        self.items = [self.niddle, self.tube, self.ether]
+
+    def pg_init(self):
+        """Initialize pygame"""
+
+        pg.init()
+        self.screen = pg.display.set_mode((600, 600), pg.RESIZABLE)
+        pg.display.set_caption("THE MAZE")
+
+    def main_loop(self):
+        """Main loop to run the game"""
+
+        pg.draw.rect(self.screen, (0, 0, 0), (0, 0, 600, 600))
+
+        self.pg_tool.load_all_sprites()
+
+        self.pg_tool.draw_sprite(self.niddle, \
+                                self.pg_tool.niddle_sprite, self.screen)
+        self.pg_tool.draw_sprite(self.ether, \
+                                self.pg_tool.ether_sprite, self.screen)
+        self.pg_tool.draw_sprite(self.tube, \
+                                self.pg_tool.tube_sprite, self.screen)
+        self.pg_tool.draw_sprite(self.guardian, \
+                                self.pg_tool.guardian_sprite, self.screen)
+
+        self.maze.draw_maze(self.pg_tool.tile_wall, self.screen)
+
+        self.pg_tool.blit(self.pg_tool.counters[self.macgyver.inventory], \
+                            self.screen)
+
+        self.macgyver.movement(self.maze.struct, self.pg_tool.input_pg())
+
+        self.pg_tool.draw_sprite(self.macgyver, self.pg_tool.macgyver_sprite, \
+                                    self.screen)
+
+        self.macgyver.check_object(self.items)
+
+        self.finished = self.macgyver.check_guardian(self.guardian)
+
+        if self.finished:
+            self.win = self.macgyver.win_lose(self.guardian)
+            self.pg_tool.win_sprite(self.win, self.screen)
+            self.pg_tool.flip()
+            sleep(2)
+        
+        self.pg_tool.flip()
+
+    def is_finished(self):
+        """Return if MacGyver's in front of the guardian"""
+
+        return self.finished
+
+    def is_won(self):
+        """Return if MacGyver wins or looses"""
+
+        return self.win
