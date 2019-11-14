@@ -194,6 +194,7 @@ class Maze:
 
         return maze_end
 
+
 class PygameTool:
     """Every tool used with pygame"""
 
@@ -240,7 +241,6 @@ class PygameTool:
 
         return move
 
-
     def load_image(self, sprite_file):
         """Load every images"""
 
@@ -271,17 +271,16 @@ class PygameTool:
     def load_counter_sprite(self):
         """Counts MacGyver's inventory and load counter sprites"""
 
-        counters_file = ['ressource/compteur_0.png', 'ressource/compteur_1.png',
-                         'ressource/compteur_2.png', 'ressource/compteur_3.png']
+        counter_file = ['ressource/compteur_0.png', 'ressource/compteur_1.png',
+                        'ressource/compteur_2.png', 'ressource/compteur_3.png']
         counters = []
 
-        for counter_file in counters_file:
+        for counter_file in counter_file:
             counter = pg.image.load(counter_file).convert_alpha()
             counter_sized = pg.transform.scale(counter, (40, 40))
             counters.append(counter_sized)
 
         return counters
-
 
     def win_sprite(self, win, screen):
         """Display if won or lost"""
@@ -324,10 +323,10 @@ class GameMaze:
     def init_characters(self):
         """Initialize characters"""
 
-        self.macgyver = Character(self.maze.start_position[0], \
-                                    self.maze.start_position[1])
-        self.guardian = Character(self.maze.end_position[0], \
-                                    self.maze.end_position[1])
+        self.macgyver = Character(self.maze.start_position[0],
+                                  self.maze.start_position[1])
+        self.guardian = Character(self.maze.end_position[0],
+                                  self.maze.end_position[1])
 
     def init_items(self):
         """Initialize items"""
@@ -341,40 +340,42 @@ class GameMaze:
 
         self.items = [self.niddle, self.tube, self.ether]
 
-    def pg_init(self):
+    def init_pg(self):
         """Initialize pygame"""
 
         pg.init()
         self.screen = pg.display.set_mode((600, 600), pg.RESIZABLE)
         pg.display.set_caption("THE MAZE")
 
-    def main_loop(self):
-        """Main loop to run the game"""
-
+    def draw_all_sprites(self):
+        """Draw every sprites"""
         pg.draw.rect(self.screen, (0, 0, 0), (0, 0, 600, 600))
 
         self.pg_tool.load_all_sprites()
 
-        self.pg_tool.draw_sprite(self.niddle, \
-                                self.pg_tool.niddle_sprite, self.screen)
-        self.pg_tool.draw_sprite(self.ether, \
-                                self.pg_tool.ether_sprite, self.screen)
-        self.pg_tool.draw_sprite(self.tube, \
-                                self.pg_tool.tube_sprite, self.screen)
-        self.pg_tool.draw_sprite(self.guardian, \
-                                self.pg_tool.guardian_sprite, self.screen)
+        self.pg_tool.draw_sprite(self.niddle,
+                                 self.pg_tool.niddle_sprite, self.screen)
+        self.pg_tool.draw_sprite(self.ether,
+                                 self.pg_tool.ether_sprite, self.screen)
+        self.pg_tool.draw_sprite(self.tube,
+                                 self.pg_tool.tube_sprite, self.screen)
+        self.pg_tool.draw_sprite(self.guardian,
+                                 self.pg_tool.guardian_sprite, self.screen)
+        self.pg_tool.draw_sprite(self.macgyver, self.pg_tool.macgyver_sprite,
+                                 self.screen)
 
         self.maze.draw_maze(self.pg_tool.tile_wall, self.screen)
 
-        self.pg_tool.blit(self.pg_tool.counters[self.macgyver.inventory], \
-                            self.screen)
+        self.pg_tool.blit(self.pg_tool.counters[self.macgyver.inventory],
+                          self.screen)
+
+    def mg_movement(self):
+        """MacGyver movement and draw the MacGyver's sprite"""
 
         self.macgyver.movement(self.maze.struct, self.pg_tool.input_pg())
 
-        self.pg_tool.draw_sprite(self.macgyver, self.pg_tool.macgyver_sprite, \
-                                    self.screen)
-
-        self.macgyver.check_object(self.items)
+    def finish(self):
+        """Check if the game is finished, and if it's won or lost"""
 
         self.finished = self.macgyver.check_guardian(self.guardian)
 
@@ -383,13 +384,18 @@ class GameMaze:
             self.pg_tool.win_sprite(self.win, self.screen)
             self.pg_tool.flip()
             sleep(2)
-        
-        self.pg_tool.flip()
 
-    def is_finished(self):
-        """Return if MacGyver's in front of the guardian"""
+    def main_loop(self):
+        """Main loop to run the game"""
 
-        return self.finished
+        self.finished = False
+        while not self.finished:
+            self.mg_movement()
+            self.draw_all_sprites()
+            self.macgyver.check_object(self.items)
+            self.finished = self.macgyver.check_guardian(self.guardian)
+            self.finish()
+            self.pg_tool.flip()
 
     def is_won(self):
         """Return if MacGyver wins or looses"""
